@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.lrs</groupId>
+    <artifactId>neighbor-tap</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <name>NeighborTap</name>
+    <description>紧邻帮帮 后台管理系统</description>
+
+    <properties>
+        <revision>1.0.0</revision>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- springboot -->
+        <spring-boot.version>3.5.7</spring-boot.version>
+
+
+        <!-- 数据库相关 -->
+        <mybatisplus.version>3.5.14</mybatisplus.version>
+        <mysql.version>8.3.0</mysql.version>
+        <druid.version>1.2.27</druid.version>
+        <mybatis-spring-boot.version>2.3.2</mybatis-spring-boot.version>
+
+        <!-- 工具 -->
+        <lombok.version>1.18.30</lombok.version>
+        <sa-token.version>1.40.0</sa-token.version>
+        <hutool.version>5.8.39</hutool.version>
+        <gson.version>2.13.2</gson.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <freemarker.version>2.3.32</freemarker.version>
+        <transmittable-thread-local.version>2.14.5</transmittable-thread-local.version>
+        <guava.version>33.0.0-jre</guava.version>
+        <redisson.version>3.32.0</redisson.version>
+        <commons.io.version>2.11.0</commons.io.version>
+        <nekohtml.version>1.9.22</nekohtml.version>
+        <joda.version>2.10.10</joda.version>
+        <slf4j.version>2.0.6</slf4j.version>
+        <justAuth.version>1.16.7</justAuth.version>
+        <okhttp.version>4.12.0</okhttp.version>
+        <retrofit.version>2.11.0</retrofit.version>
+
+        <!-- 微信支付 -->
+        <wxJava.version>4.7.0</wxJava.version>
+        <!-- 支付宝支付 -->
+        <alipay-sdk.version>4.40.21.ALL</alipay-sdk.version>
+        <payment.version>1.0.20.RELEASE</payment.version>
+
+        <!-- 离线IP地址定位库 -->
+        <ip2region.version>2.7.0</ip2region.version>
+
+        <!-- 插件版本 -->
+        <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
+        <maven-war-plugin.version>3.3.2</maven-war-plugin.version>
+        <maven-compiler-plugin.verison>2.7.14</maven-compiler-plugin.verison>
+        <flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
+    </properties>
+
+
+    <!-- 依赖声明 -->
+    <dependencyManagement>
+
+        <dependencies>
+            <!-- SpringBoot的依赖配置-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-bom</artifactId>
+                <version>${mybatisplus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!--  mybatis-plus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-annotation</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-extension</artifactId>
+                <version>${mybatisplus.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+
+
+            <!--  阿里巴巴数据库连接池     -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-starter</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+            <!-- mysql -->
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${mysql.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+            <!-- 在 thymeleaf 标签中使用 Sa-Token -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-dialect-thymeleaf</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <!-- hutool 模块，按需引用吧 -->
+<!--            <module>hutool-all</module>-->
+<!--            <module>hutool-bom</module>-->
+<!--            <module>hutool-aop</module>-->
+<!--            <module>hutool-bloomFilter</module>-->
+<!--            <module>hutool-cache</module>-->
+<!--            <module>hutool-core</module>-->
+<!--            <module>hutool-cron</module>-->
+<!--            <module>hutool-crypto</module>-->
+<!--            <module>hutool-db</module>-->
+<!--            <module>hutool-dfa</module>-->
+<!--            <module>hutool-extra</module>-->
+<!--            <module>hutool-http</module>-->
+<!--            <module>hutool-log</module>-->
+<!--            <module>hutool-script</module>-->
+<!--            <module>hutool-setting</module>-->
+<!--            <module>hutool-system</module>-->
+<!--            <module>hutool-json</module>-->
+<!--            <module>hutool-poi</module>-->
+<!--            <module>hutool-captcha</module>-->
+<!--            <module>hutool-socket</module>-->
+<!--            <module>hutool-jwt</module>-->
+<!--            <dependency>-->
+<!--                <groupId>cn.hutool</groupId>-->
+<!--                <artifactId>hutool-all</artifactId>-->
+<!--                <version>${hutool.version}</version>-->
+<!--            </dependency>-->
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-bom</artifactId>
+                <version>${hutool.version}</version>
+                <type>pom</type>
+                <!-- 注意这里是import -->
+                <scope>import</scope>
+            </dependency>
+
+            <!-- 多线程值传递 -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>transmittable-thread-local</artifactId>
+                <version>${transmittable-thread-local.version}</version>
+            </dependency>
+
+            <!-- io常用工具类 -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
+
+            <!-- 离线IP地址定位库 ip2region -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+    <modules>
+        <module>generator</module>
+        <module>neighbor-web</module>
+        <module>neighbor-common</module>
+    </modules>
+
+    <build>
+        <resources>
+            <!-- 全部引入 -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${maven-compiler-plugin.verison}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven-war-plugin.version}</version>
+                <configuration>
+                    <warSourceExcludes>src/main/resources/**</warSourceExcludes>
+                    <warName></warName>
+                </configuration>
+            </plugin>
+            <!-- 统一版本号管理 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
