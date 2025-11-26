@@ -56,29 +56,6 @@ public class AuthController {
     }
 
     /**
-     * 验证码
-     */
-    @SneakyThrows
-    @GetMapping("/captcha2")
-    public void captcha2(HttpServletRequest request, HttpServletResponse response,int w,int h){
-        HttpSession session = request.getSession();
-        try (OutputStream os = response.getOutputStream()) {
-            // 获取图片
-            Object[] img = CaptchaUtil.CreateCode(w,h);
-            BufferedImage image = (BufferedImage) img[0];
-            response.setContentType("image/png");
-            ImageIO.write(image, "png", os);
-            os.flush();
-            session.setAttribute(Const.SessionKey.SESSION_CODE,img[1]);
-        } catch (IOException e) {
-            log.error("验证码输出异常:{}", e.getMessage(),e);
-            // 返回适当的错误响应
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "验证码输出异常");
-        }
-    }
-
-
-    /**
      * 用户登录
      * @return
      */

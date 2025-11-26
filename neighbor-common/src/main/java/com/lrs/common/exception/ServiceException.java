@@ -10,32 +10,32 @@ import lombok.Data;
  *
  */
 @Data
-public class ApiException extends RuntimeException{
+public class ServiceException extends RuntimeException{
 	private static final long serialVersionUID = 1L;
 	private Integer status;
 	private String message;
 	private Object data;
 	private Exception exception;
-	public ApiException() {
+	public ServiceException() {
 		super();
 	}
 
-	public ApiException(Integer status, String message, Object data, Exception exception) {
+	public ServiceException(Integer status, String message, Object data, Exception exception) {
 		this.status = status;
 		this.message = message;
 		this.data = data;
 		this.exception = exception;
 	}
-	public ApiException(String message) {
+	public ServiceException(String message) {
 		this(ApiResultEnum.ERROR.getCode(),message,null,null);
 	}
-	public ApiException(ApiResultEnum apiResultEnum) {
+	public ServiceException(ApiResultEnum apiResultEnum) {
 		this(apiResultEnum.getCode(),apiResultEnum.getMessage(),null,null);
 	}
-	public ApiException(ApiResultEnum apiResultEnum, Object data) {
+	public ServiceException(ApiResultEnum apiResultEnum, Object data) {
 		this(apiResultEnum.getCode(),apiResultEnum.getMessage(),data,null);
 	}
-	public ApiException(ApiResultEnum apiResultEnum, Object data, Exception exception) {
+	public ServiceException(ApiResultEnum apiResultEnum, Object data, Exception exception) {
 		this(apiResultEnum.getCode(),apiResultEnum.getMessage(),data,exception);
 	}
 

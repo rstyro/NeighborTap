@@ -67,13 +67,4 @@ public class IndexController {
         return "icon";
     }
 
-    /**
-     * tinymce Demo 页面
-     */
-    @GetMapping("/tinymceDemo")
-    public String tinymceDemo() {
-        return "page/tinymce/tinymceDemo";
-    }
-
-
 }

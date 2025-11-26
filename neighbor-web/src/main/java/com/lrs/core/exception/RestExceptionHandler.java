@@ -2,8 +2,8 @@ package com.lrs.core.exception;
 
 import cn.dev33.satoken.exception.NotPermissionException;
 import com.lrs.common.constant.ApiResultEnum;
+import com.lrs.common.exception.ServiceException;
 import com.lrs.common.vo.R;
-import com.lrs.common.exception.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -54,8 +54,8 @@ public class RestExceptionHandler {
 	}
 
 
-	@ExceptionHandler(ApiException.class)
-	public R ApiException(ApiException ex) {
+	@ExceptionHandler(ServiceException.class)
+	public R ApiException(ServiceException ex) {
 		log.error(ex.getMessage(),ex);
 		return R.error(ex.getStatus(),ex.getMessage());
 	}

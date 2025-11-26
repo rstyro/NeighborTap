@@ -14,6 +14,7 @@
     <properties>
         <revision>1.0.0</revision>
         <java.version>17</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- springboot -->
@@ -28,21 +29,20 @@
 
         <!-- 工具 -->
         <lombok.version>1.18.30</lombok.version>
-        <sa-token.version>1.40.0</sa-token.version>
         <hutool.version>5.8.39</hutool.version>
         <gson.version>2.13.2</gson.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <freemarker.version>2.3.32</freemarker.version>
         <transmittable-thread-local.version>2.14.5</transmittable-thread-local.version>
         <guava.version>33.0.0-jre</guava.version>
-        <redisson.version>3.32.0</redisson.version>
+        <redisson.version>3.52.0</redisson.version>
         <commons.io.version>2.11.0</commons.io.version>
         <nekohtml.version>1.9.22</nekohtml.version>
-        <joda.version>2.10.10</joda.version>
-        <slf4j.version>2.0.6</slf4j.version>
+
+        <!-- 鉴权 -->
         <justAuth.version>1.16.7</justAuth.version>
-        <okhttp.version>4.12.0</okhttp.version>
-        <retrofit.version>2.11.0</retrofit.version>
+        <sa-token.version>1.40.0</sa-token.version>
+
 
         <!-- 微信支付 -->
         <wxJava.version>4.7.0</wxJava.version>
@@ -116,7 +116,7 @@
             <!--  阿里巴巴数据库连接池     -->
             <dependency>
                 <groupId>com.alibaba</groupId>
-                <artifactId>druid-spring-boot-starter</artifactId>
+                <artifactId>druid-spring-boot-3-starter</artifactId>
                 <version>${druid.version}</version>
             </dependency>
             <!-- mysql -->
@@ -208,11 +208,18 @@
                 <version>${ip2region.version}</version>
             </dependency>
 
-
+            <!-- 代码生成需要Freemarker模版 -->
             <dependency>
                 <groupId>freemarker</groupId>
                 <artifactId>freemarker</artifactId>
                 <version>${freemarker.version}</version>
+            </dependency>
+
+            <!-- redisson -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
 
         </dependencies>

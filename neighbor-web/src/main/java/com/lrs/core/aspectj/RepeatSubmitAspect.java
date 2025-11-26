@@ -8,7 +8,8 @@ import cn.hutool.crypto.SecureUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.lrs.common.annotation.RepeatSubmit;
 import com.lrs.common.constant.Const;
-import com.lrs.common.exception.ApiException;
+import com.lrs.common.constant.RedisKey;
+import com.lrs.common.exception.ServiceException;
 import com.lrs.common.utils.GsonUtil;
 import com.lrs.common.utils.RedisSimulation;
 import com.lrs.common.vo.R;
@@ -28,121 +29,139 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.StringJoiner;
 
-
 /**
- * 防止重复提交
+ * 防止重复提交切面
+ *
+ * @author lrs
  */
 @Aspect
 @Component
 public class RepeatSubmitAspect {
 
-    private static final ThreadLocal<String> KEY_CACHE = new ThreadLocal<>();
+    private static final int MIN_INTERVAL = 1000;
+    private static final String PARAM_JOINER = " ";
+    private final RedisSimulation redisSimulation;
 
     /**
-     * redis 模拟，有条件可集成Redis
+     * 使用ThreadLocal存储当前请求的重复提交键，确保线程安全
      */
-    private static final RedisSimulation redisSimulation = SpringUtil.getBean(RedisSimulation.class);
+    private static final ThreadLocal<String> CURRENT_KEY = new ThreadLocal<>();
+
+    public RepeatSubmitAspect() {
+        this.redisSimulation = SpringUtil.getBean(RedisSimulation.class);
+    }
 
     @Before("@annotation(repeatSubmit)")
-    public void doBefore(JoinPoint point, RepeatSubmit repeatSubmit) throws Throwable {
-        // 如果注解不为0 则使用注解数值
+    public void doBefore(JoinPoint point, RepeatSubmit repeatSubmit) {
+        // 验证时间间隔
         long interval = repeatSubmit.timeUnit().toMillis(repeatSubmit.interval());
-        if (interval < 1000) {
-            throw new ApiException("重复提交间隔时间不能小于'1'秒");
+        if (interval < MIN_INTERVAL) {
+            throw new ServiceException("重复提交间隔时间不能小于1秒");
         }
+
         HttpServletRequest request = BaseController.getRequest();
-        String nowParams = argsArrayToString(point.getArgs());
+        String requestParams = buildRequestParams(point.getArgs());
+        String cacheKey = buildCacheKey(request, requestParams);
 
-        // 请求地址（作为存放cache的key值）
-        String url = request.getRequestURI();
-
-        // 唯一值（没有消息头则使用请求地址）
-        String submitKey = StrUtil.trimToEmpty(request.getHeader(SaManager.getConfig().getTokenName()));
-
-        submitKey = SecureUtil.md5(submitKey + ":" + nowParams);
-        // 唯一标识（指定key + url + 消息头）
-        String cacheRepeatKey = Const.RedisKey.REPEAT_SUBMIT_KEY + url + submitKey;
-        if (redisSimulation.setObjectIfAbsent(cacheRepeatKey, "", interval)) {
-            KEY_CACHE.set(cacheRepeatKey);
-        } else {
-            String message = repeatSubmit.message();
-            throw new ApiException(message);
+        // 尝试获取锁，如果已存在则抛出异常
+        if (!redisSimulation.setObjectIfAbsent(cacheKey, "", interval)) {
+            throw new ServiceException(repeatSubmit.message());
         }
+
+        CURRENT_KEY.set(cacheKey);
     }
 
-    /**
-     * 处理完请求后执行
-     *
-     * @param joinPoint 切点
-     */
-    @AfterReturning(pointcut = "@annotation(repeatSubmit)", returning = "jsonResult")
-    public void doAfterReturning(JoinPoint joinPoint, RepeatSubmit repeatSubmit, Object jsonResult) {
-        if (jsonResult instanceof R<?>) {
-            R<?> r = (R<?>) jsonResult;
-            try {
-                // 成功则不删除redis数据 保证在有效时间内无法重复提交
-                if (r.getCode() == R.SUCCESS) {
-                    return;
+    @AfterReturning(pointcut = "@annotation(repeatSubmit)", returning = "result")
+    public void doAfterReturning(RepeatSubmit repeatSubmit, Object result) {
+        try {
+            if (result instanceof R) {
+                R<?> r = (R<?>) result;
+                // 仅当业务失败时删除键，允许重新提交
+                if (r.getCode() != R.SUCCESS) {
+                    removeCurrentKey();
                 }
-                redisSimulation.del(KEY_CACHE.get());
-            } finally {
-                KEY_CACHE.remove();
             }
+        } finally {
+            cleanup();
         }
     }
 
-    /**
-     * 拦截异常操作
-     *
-     * @param joinPoint 切点
-     * @param e         异常
-     */
     @AfterThrowing(value = "@annotation(repeatSubmit)", throwing = "e")
-    public void doAfterThrowing(JoinPoint joinPoint, RepeatSubmit repeatSubmit, Exception e) {
-        redisSimulation.del(KEY_CACHE.get());
-        KEY_CACHE.remove();
+    public void doAfterThrowing(RepeatSubmit repeatSubmit,Exception e) {
+        removeCurrentKey();
+        cleanup();
     }
 
     /**
-     * 参数拼装
+     * 构建请求参数字符串
      */
-    private String argsArrayToString(Object[] paramsArray) {
-        StringJoiner params = new StringJoiner(" ");
-        if (ArrayUtil.isEmpty(paramsArray)) {
-            return params.toString();
+    private String buildRequestParams(Object[] params) {
+        if (ArrayUtil.isEmpty(params)) {
+            return "";
         }
-        for (Object o : paramsArray) {
-            if (ObjectUtil.isNotNull(o) && !isFilterObject(o)) {
-                params.add(GsonUtil.toJson(o));
+
+        StringJoiner joiner = new StringJoiner(PARAM_JOINER);
+        for (Object param : params) {
+            if (shouldIncludeParam(param)) {
+                joiner.add(GsonUtil.toJson(param));
             }
         }
-        return params.toString();
+        return joiner.toString();
     }
 
     /**
-     * 判断是否需要过滤的对象。
-     *
-     * @param o 对象信息。
-     * @return 如果是需要过滤的对象，则返回true；否则返回false。
+     * 构建Redis缓存键
      */
-    @SuppressWarnings("rawtypes")
-    public boolean isFilterObject(final Object o) {
-        Class<?> clazz = o.getClass();
+    private String buildCacheKey(HttpServletRequest request, String params) {
+        String token = StrUtil.trimToEmpty(request.getHeader(SaManager.getConfig().getTokenName()));
+        String requestUri = request.getRequestURI();
+        String uniqueKey = SecureUtil.md5(token + ":" + params);
+
+        return RedisKey.REPEAT_SUBMIT_KEY + requestUri + uniqueKey;
+    }
+
+    /**
+     * 判断参数是否应该包含在重复提交校验中
+     */
+    private boolean shouldIncludeParam(Object param) {
+        if (ObjectUtil.isNull(param)) {
+            return false;
+        }
+        Class<?> clazz = param.getClass();
         if (clazz.isArray()) {
-            return clazz.getComponentType().isAssignableFrom(MultipartFile.class);
-        } else if (Collection.class.isAssignableFrom(clazz)) {
-            Collection collection = (Collection) o;
-            for (Object value : collection) {
-                return value instanceof MultipartFile;
-            }
-        } else if (Map.class.isAssignableFrom(clazz)) {
-            Map map = (Map) o;
-            for (Object value : map.values()) {
-                return value instanceof MultipartFile;
-            }
+            return !clazz.getComponentType().isAssignableFrom(MultipartFile.class);
+        } else if (param instanceof Collection) {
+            return ((Collection<?>) param).stream().noneMatch(this::isFileOrRequest);
+        } else if (param instanceof Map) {
+            return ((Map<?, ?>) param).values().stream().noneMatch(this::isFileOrRequest);
         }
-        return o instanceof MultipartFile || o instanceof HttpServletRequest || o instanceof HttpServletResponse
-               || o instanceof BindingResult;
+        return !isFileOrRequest(param);
     }
 
+    /**
+     * 判断是否为文件或Servlet对象
+     */
+    private boolean isFileOrRequest(Object obj) {
+        return obj instanceof MultipartFile
+                || obj instanceof HttpServletRequest
+                || obj instanceof HttpServletResponse
+                || obj instanceof BindingResult;
+    }
+
+    /**
+     * 移除当前线程的Redis键
+     */
+    private void removeCurrentKey() {
+        String key = CURRENT_KEY.get();
+        if (key != null) {
+            redisSimulation.del(key);
+        }
+    }
+
+    /**
+     * 清理ThreadLocal
+     */
+    private void cleanup() {
+        CURRENT_KEY.remove();
+    }
 }

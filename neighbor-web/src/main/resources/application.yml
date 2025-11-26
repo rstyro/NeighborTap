@@ -14,7 +14,8 @@ spring:
       minIdle: 5
       maxActive: 30
       max-wait: 6000
-      pool-prepared-statements: true
+      # 是否缓存preparedStatement
+      pool-prepared-statements: false
       max-pool-prepared-statement-per-connection-size: 20
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 300000
@@ -22,11 +23,22 @@ spring:
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
+      web-stat-filter:
+        enabled: true
+        # 添加过滤规则
+        url-pattern: /*
+        # 忽略过滤的格式
+        exclusions: /druid/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico
       stat-view-servlet:
         enabled: true
+        # 访问路径为/druid时，跳转到StatViewServlet
         url-pattern: /druid/*
         login-username: rstyro
         login-password: rstyro
+        # IP白名单
+        allow: 127.0.0.1
+        # IP黑名单（共同存在时，deny优先于allow）
+        deny:
       filter:
         stat:
           log-slow-sql: true
@@ -35,6 +47,7 @@ spring:
         wall:
           config:
             multi-statement-allow: true
+
 
   thymeleaf:
     mode: LEGACYHTML5
@@ -100,6 +113,7 @@ mybatis-plus:
 security:
   excludes:
     - /static/**
+    - /favicon.ico
     - /error/**
     - /toLogin
     - /login

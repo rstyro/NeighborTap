@@ -69,7 +69,7 @@ public class LoginInfoEvent implements Serializable {
      */
     public void setInfo(HttpServletRequest request){
         final UserAgent userAgent = UserAgentUtil.parse(request.getHeader("User-Agent"));
-        String ip = BaseController.getRemoteIP(request);
+        String ip = BaseController.getRemoteIp(request);
         String address = RegionUtils.getCityInfo(ip);
         // 获取客户端操作系统
         String os = userAgent.getOs().getName();
