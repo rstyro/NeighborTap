@@ -1,7 +1,7 @@
 package com.lrs.common.exception;
 
 
-import com.lrs.common.constant.ApiResultEnum;
+import com.lrs.common.enums.ApiResultEnum;
 import lombok.Data;
 
 /**

@@ -1,12 +1,11 @@
-package com.lrs.common.constant;
+package com.lrs.common.enums;
 
 /**
  * 业务操作类型
  *
  * @author ruoyi
  */
-public enum BusinessType
-{
+public enum BusinessType {
     /**
      * 其它
      */

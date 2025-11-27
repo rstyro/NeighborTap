@@ -6,6 +6,7 @@ import com.lrs.common.annotation.AntiResubmit;
 import com.lrs.common.constant.RedisKey;
 import com.lrs.common.exception.ServiceException;
 import com.lrs.common.utils.RemoteIpUtil;
+import com.lrs.common.vo.R;
 import com.lrs.core.base.BaseController;
 import com.lrs.core.satoken.StpKit;
 import com.lrs.core.system.entity.SysUser;
@@ -20,10 +21,12 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -47,19 +50,20 @@ public class AntiResubmitAspect {
         String lockKey = generateLockKey(joinPoint, antiResubmit);
         String requestId = IdUtil.simpleUUID();
         // 尝试获取锁
-        Boolean success = RedisUtil.tryLock(lockKey, requestId, antiResubmit.lockTime());
-        if (Boolean.TRUE.equals(success)) {
-            try {
-                // 获取锁成功，执行目标方法
-                return joinPoint.proceed();
-            } finally {
-                // 方法执行完成后释放锁（或者等待自动过期）
-                // 这里可以选择立即删除，也可以等待自动过期
-                RedisUtil.releaseLock(lockKey, requestId);
-            }
-        } else {
+        Boolean success = RedisUtil.tryLock(lockKey, requestId, antiResubmit.lockTime(), TimeUnit.SECONDS);
+        if(Boolean.FALSE.equals(success)) {
             // 获取锁失败，抛出重复提交异常
             throw new ServiceException(antiResubmit.message());
+        }
+        try {
+            log.debug("获取请求锁key：{} 成功",lockKey);
+            // 获取锁成功，执行目标方法
+            return joinPoint.proceed();
+        } catch (Throwable e) {
+            log.error("around,err:{}",e.getMessage(), e);
+            // 方法执行失败时，才会删除锁
+            RedisUtil.releaseLock(lockKey, requestId);
+            throw e;
         }
     }
 
@@ -172,7 +176,7 @@ public class AntiResubmitAspect {
                 return "no_params";
             }
             String paramStr = Arrays.stream(args)
-                    .filter(Objects::nonNull)
+                    .filter(o->Objects.nonNull(o) && !(o instanceof MultipartFile))
                     .map(Object::toString)
                     .collect(Collectors.joining("|"));
             return DigestUtils.md5DigestAsHex(paramStr.getBytes());

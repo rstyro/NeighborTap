@@ -1,4 +1,4 @@
-package com.lrs.common.constant;
+package com.lrs.common.enums;
 
 public enum ApiResultEnum {
 	SUCCESS(200,"ok"),
@@ -19,6 +19,8 @@ public enum ApiResultEnum {
 	SYSTEM_USER_EXIST(1004,"用户名已存在"),
 	SYSTEM_USER_ABOVE_MAX_RETRY_COUNT(1005,"用户登录错误次数过多已被锁定，请稍后再试"),
 
+	// APP相关
+	APP_USER_NO_LOGIN_OR_EXPIRED(2001,"用户未登录或登录已过期"),
 	;
 
 	private String message;

@@ -1,7 +1,7 @@
 package com.lrs.core.exception;
 
 import cn.dev33.satoken.exception.NotPermissionException;
-import com.lrs.common.constant.ApiResultEnum;
+import com.lrs.common.enums.ApiResultEnum;
 import com.lrs.common.exception.ServiceException;
 import com.lrs.common.vo.R;
 import lombok.extern.slf4j.Slf4j;

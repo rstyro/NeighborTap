@@ -787,7 +787,7 @@ public class RedisUtil {
                     "redis.call('pexpire', KEYS[1], ARGV[2]) return 1 else return 0 end";
             RedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
             Long result = redisTemplate.execute(redisScript, Collections.singletonList(lockKey),
-                    requestId, String.valueOf(timeUnit.toMillis(expireTime)));
+                    requestId, timeUnit.toMillis(expireTime));
             return result != null && result == 1;
         } catch (Exception e) {
             log.error(e.getMessage(),e);
@@ -809,6 +809,7 @@ public class RedisUtil {
                     "return redis.call('del', KEYS[1]) else return 0 end";
             RedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
             Long result = redisTemplate.execute(redisScript, Collections.singletonList(lockKey), requestId);
+            log.debug("释放锁key：{} ，结果={}",lockKey,result);
             return result != null && result == 1;
         } catch (Exception e) {
             log.error(e.getMessage(),e);

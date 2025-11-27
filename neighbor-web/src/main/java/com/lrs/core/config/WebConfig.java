@@ -42,10 +42,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(contextInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns(securityConfig.getExcludes());
-        // 注册 Sa-Token 拦截器，校验规则为 StpUtil.checkLogin() 登录校验。
-        registry.addInterceptor(new SaInterceptor(handle -> StpUtil.checkLogin()))
-                .addPathPatterns("/**")
-                .excludePathPatterns(securityConfig.getExcludes());
     }
 
     @Override

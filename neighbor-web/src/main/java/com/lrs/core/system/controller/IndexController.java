@@ -1,8 +1,12 @@
 package com.lrs.core.system.controller;
 
+import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.convert.Convert;
+import com.lrs.common.annotation.AntiResubmit;
 import com.lrs.common.constant.Const;
+import com.lrs.common.enums.LockType;
+import com.lrs.common.vo.R;
 import com.lrs.common.vo.TabsVo;
 import com.lrs.core.config.CommonConfig;
 import com.lrs.core.system.entity.SysUser;
@@ -12,8 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 首页相关
@@ -65,6 +72,19 @@ public class IndexController {
     @GetMapping("/icon")
     public String icon() {
         return "icon";
+    }
+
+
+    @GetMapping("/test")
+    @ResponseBody
+    @AntiResubmit
+    @SaIgnore
+    public R test(String name, MultipartFile file) {
+        if(Objects.equals(name, "test")) {
+            throw new RuntimeException("test");
+        }
+        System.out.println(file);
+        return R.ok();
     }
 
 }

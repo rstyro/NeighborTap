@@ -11,7 +11,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lrs.common.constant.ApiResultEnum;
+import com.lrs.common.enums.ApiResultEnum;
 import com.lrs.common.constant.Const;
 import com.lrs.common.constant.RedisKey;
 import com.lrs.common.constant.SystemConst;
