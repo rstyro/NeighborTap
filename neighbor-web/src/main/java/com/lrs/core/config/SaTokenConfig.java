@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.lrs.common.utils.RedisSimulation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -27,14 +26,6 @@ public class SaTokenConfig {
     @Bean
     public SaTokenDialect getSaTokenDialect() {
         return new SaTokenDialect();
-    }
-
-    /**
-     *  Redis 模拟器
-      */
-    @Bean
-    public RedisSimulation redisSimulation() {
-        return new RedisSimulation();
     }
 
     /**

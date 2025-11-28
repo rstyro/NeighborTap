@@ -5,7 +5,7 @@ import com.lrs.common.enums.ApiResultEnum;
 import lombok.Data;
 
 /**
- * 自定义的api异常
+ * 自定义的服务异常
  * @author rstyro
  *
  */

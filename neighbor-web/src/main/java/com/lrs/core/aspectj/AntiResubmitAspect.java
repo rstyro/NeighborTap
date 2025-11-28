@@ -6,7 +6,6 @@ import com.lrs.common.annotation.AntiResubmit;
 import com.lrs.common.constant.RedisKey;
 import com.lrs.common.exception.ServiceException;
 import com.lrs.common.utils.RemoteIpUtil;
-import com.lrs.common.vo.R;
 import com.lrs.core.base.BaseController;
 import com.lrs.core.satoken.StpKit;
 import com.lrs.core.system.entity.SysUser;
@@ -163,7 +162,7 @@ public class AntiResubmitAspect {
     // 工具方法
     private String getCurrentUserId() {
         try {
-            return StpKit.USER.getTokenValue();
+            return StpKit.APP.getTokenValue();
         } catch (Exception e) {
             return "anonymous";
         }

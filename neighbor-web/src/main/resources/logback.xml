@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
     <!-- 日志名称前缀 -->
-    <property name="LOG_NAME" value="jtkl_exchange"/>
+    <property name="LOG_NAME" value="neighbor-tap"/>
     <!-- 最大保存时间：15天-->
     <property name="KEEP_DAY" value="15"/>
     <!-- 日志输出格式 - 优化格式提升可读性 -->

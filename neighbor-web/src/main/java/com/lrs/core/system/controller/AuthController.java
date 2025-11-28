@@ -1,5 +1,6 @@
 package com.lrs.core.system.controller;
 
+import com.lrs.common.annotation.AntiResubmit;
 import com.lrs.common.constant.Const;
 import com.lrs.common.utils.CaptchaUtil;
 import com.lrs.common.vo.R;
@@ -71,6 +72,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     @ResponseBody
+    @AntiResubmit
     public R logout(HttpServletRequest request){
         return R.ok(sysUserService.logout(request));
     }

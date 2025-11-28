@@ -12,7 +12,7 @@ public class StpKit {
      */
     public static final StpLogic ADMIN = StpUtil.stpLogic;
 
-    public static final StpLogic USER = new StpLogic("user"){
+    public static final StpLogic APP = new StpLogic("app"){
         @Override
         public String splicingKeyTokenName() {
             return "token";

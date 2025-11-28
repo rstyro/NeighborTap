@@ -5,21 +5,18 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.lrs.common.enums.ApiResultEnum;
 import com.lrs.common.constant.Const;
 import com.lrs.common.constant.RedisKey;
 import com.lrs.common.constant.SystemConst;
+import com.lrs.common.enums.ApiResultEnum;
 import com.lrs.common.exception.ServiceException;
-import com.lrs.common.utils.GsonUtil;
-import com.lrs.common.utils.RedisSimulation;
+import com.lrs.common.utils.RemoteIpUtil;
 import com.lrs.common.vo.TabsVo;
-import com.lrs.core.base.BaseController;
 import com.lrs.core.config.CommonConfig;
 import com.lrs.core.system.dto.BaseDto;
 import com.lrs.core.system.dto.LoginDto;
@@ -33,16 +30,17 @@ import com.lrs.core.system.service.ISysMenuService;
 import com.lrs.core.system.service.ISysRoleMenuService;
 import com.lrs.core.system.service.ISysUserRoleService;
 import com.lrs.core.system.service.ISysUserService;
+import com.lrs.core.util.RedisUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -66,9 +64,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Resource
     private CommonConfig.UserConfig userConfig;
-
-    @Resource
-    private RedisSimulation redisSimulation;
 
 
     /**
@@ -124,7 +119,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         List<Long> menuList = Optional.ofNullable(userRoleList)
                 .filter(i -> !i.isEmpty())
                 .map(list -> sysMenuRoleService.list(new LambdaQueryWrapper<SysRoleMenu>()
-                        .in(SysRoleMenu::getRoleId, list))
+                                .in(SysRoleMenu::getRoleId, list))
                         .stream()
                         .map(SysRoleMenu::getMenuId)
                         .collect(Collectors.toList()))
@@ -137,7 +132,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public void checkPermit(List<SysMenu> allMenuTreeList, List<Long> menuList, Long userId) {
         for (SysMenu sysMenu : allMenuTreeList) {
             //判断菜单是否有查看权限,1=admin 超级管理员相当可无视规则得到所有权限
-            sysMenu.setHasPermit(menuList.contains(sysMenu.getId()) || userId.equals(1l));
+            sysMenu.setHasPermit(menuList.contains(sysMenu.getId()) || userId==1);
             if (!ObjectUtils.isEmpty(sysMenu.getChild())) {
                 checkPermit(sysMenu.getChild(), menuList, userId);
             }
@@ -181,12 +176,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return save(item);
     }
 
-    public void checkUserName(SysUser item){
+    public void checkUserName(SysUser item) {
         long count = count(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, item.getUsername()));
         if (count > 0) {
             throw new ServiceException(ApiResultEnum.SYSTEM_USER_EXIST);
         }
     }
+
     @Override
     public boolean edit(SysUser item) {
         SysUser sysUser = getById(item.getId());
@@ -225,64 +221,125 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public SysUser login(HttpServletRequest request, LoginDto dto) {
-        String errKey = RedisKey.USER_ACCOUNT_ERR_KEY+dto.getUsername()+ BaseController.getRemoteIp(request);
-        int errorNumber = ObjectUtil.defaultIfNull(redisSimulation.get(errKey), 0);
-        // 锁定时间内登录 则踢出
-        int maxRetryCount = userConfig.getMaxRetryCount();
-        if (errorNumber >= maxRetryCount) {
-            recordLoginInfo(request,dto.getUsername(), SystemConst.LoginInfoStatus.FAIL,ApiResultEnum.SYSTEM_USER_ABOVE_MAX_RETRY_COUNT.getMessage());
-            throw new ServiceException(ApiResultEnum.SYSTEM_USER_ABOVE_MAX_RETRY_COUNT);
-        }
-        String codeStr = (String) request.getSession().getAttribute(Const.SessionKey.SESSION_CODE);
-        checkLoginError(request, dto.getUsername(),errKey,errorNumber,maxRetryCount,ApiResultEnum.SYSTEM_CODE_ERROR,()->!dto.getCode().equalsIgnoreCase(codeStr));
+        String errKey = RedisKey.USER_ACCOUNT_ERR_KEY + dto.getUsername() + RemoteIpUtil.getRemoteIp(request);
+        // 检查账户是否被锁定
+        checkAccountLocked(request, dto.getUsername(), errKey);
+        // 验证码校验
+        validateCaptcha(request, dto, errKey);
+
         SysUser sysUser = this.getOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, dto.getUsername()));
-        checkLoginError(request, dto.getUsername(),errKey,errorNumber,maxRetryCount,ApiResultEnum.SYSTEM_ACCOUNT_NOT_FOUND,()->sysUser==null);
-        String salt = sysUser.getSalt();
-        String pwd = SecureUtil.md5(dto.getPassword() + salt);
-        checkLoginError(request, dto.getUsername(),errKey,errorNumber,maxRetryCount,ApiResultEnum.SYSTEM_PASSWORD_ERROR,()->!pwd.equals(sysUser.getPassword()));
-        // 登录成功
-        StpUtil.login(sysUser.getId(), dto.isRememberMe());
-        recordLoginInfo(request,dto.getUsername(), SystemConst.LoginInfoStatus.SUCCESS,"登录成功");
-        // 更新最后登录时间
-        updateUserRecord(sysUser);
-        SaSession session = StpUtil.getSession();
-        session.set(Const.SessionKey.SESSION_USER, sysUser);
-        // 数据脱敏
-        sysUser.setPassword("****");
-        sysUser.setSalt("****");
-        List<String> keys = StpUtil.searchTokenValue("", 0, -1, false);
-        System.out.println(GsonUtil.toJson(keys));
+        // 用户存在性检查
+        validateUserExists(request, dto, sysUser, errKey);
+
+        // 登录成功处理
+        handleLoginSuccess(request,dto,sysUser,errKey);
         return sysUser;
     }
 
-    private void checkLoginError(HttpServletRequest request, String username, String errKey, int errorNumber, int maxRetryCount, ApiResultEnum errorEnum, Supplier<Boolean> supplier) {
-        if(supplier.get()){
-            redisSimulation.set(errKey, ++errorNumber, userConfig.getLockTime(), TimeUnit.MINUTES);
-            recordLoginInfo(request, username, SystemConst.LoginInfoStatus.FAIL, errorEnum.getMessage());
-            if (errorNumber >= maxRetryCount) {
-                recordLoginInfo(request, username, SystemConst.LoginInfoStatus.FAIL, ApiResultEnum.SYSTEM_USER_ABOVE_MAX_RETRY_COUNT.getMessage());
-                throw new ServiceException(ApiResultEnum.SYSTEM_USER_ABOVE_MAX_RETRY_COUNT);
-            }
-            throw new ServiceException(errorEnum);
+    /**
+     * 检查账户是否被锁定
+     */
+    private void checkAccountLocked(HttpServletRequest request, String username, String errKey) {
+        Integer errorCount = RedisUtil.get(errKey, Integer.class);
+        int maxRetryCount = userConfig.getMaxRetryCount();
+
+        if (errorCount != null && errorCount >= maxRetryCount) {
+            recordLoginInfo(request, username, SystemConst.LoginInfoStatus.FAIL,
+                    ApiResultEnum.SYSTEM_USER_ABOVE_MAX_RETRY_COUNT.getMessage());
+            throw new ServiceException(ApiResultEnum.SYSTEM_USER_ABOVE_MAX_RETRY_COUNT);
         }
+    }
+
+    /**
+     * 验证码校验
+     */
+    private void validateCaptcha(HttpServletRequest request, LoginDto dto, String errKey) {
+        String sessionCode = (String) request.getSession().getAttribute(Const.SessionKey.SESSION_CODE);
+
+        if (!StringUtils.hasText(sessionCode) || !sessionCode.equalsIgnoreCase(dto.getCode())) {
+            handleLoginError(request, dto.getUsername(), errKey,
+                    ApiResultEnum.SYSTEM_CODE_ERROR.getMessage());
+            throw new ServiceException(ApiResultEnum.SYSTEM_CODE_ERROR);
+        }
+    }
+
+    /**
+     * 处理登录错误
+     */
+    private void handleLoginError(HttpServletRequest request, String username,String errKey, String errorMsg) {
+        // 原子性增加错误次数
+        Long errorCount = RedisUtil.incr(errKey, 1L);
+        int maxRetryCount = userConfig.getMaxRetryCount();
+        // 如果是第一次错误，设置过期时间
+        if (errorCount == 1) {
+            RedisUtil.expire(errKey, userConfig.getLockTime(), TimeUnit.MINUTES);
+        }
+        String detailedMsg = errorCount >= maxRetryCount ?
+                "账户已被锁定，请" + userConfig.getLockTime() + "分钟后再试" :
+                String.format("密码错误，还剩%d次尝试机会", maxRetryCount - errorCount);
+        recordLoginInfo(request, username, SystemConst.LoginInfoStatus.FAIL, errorMsg + " | " + detailedMsg);
+        if (errorCount >= maxRetryCount) {
+            throw new ServiceException(detailedMsg);
+        }
+    }
+
+    /**
+     * 验证用户存在性
+     */
+    private void validateUserExists(HttpServletRequest request, LoginDto dto,SysUser sysUser, String errKey) {
+        if (sysUser == null) {
+            handleLoginError(request, dto.getUsername(), errKey,
+                    ApiResultEnum.SYSTEM_ACCOUNT_NOT_FOUND.getMessage());
+            throw new ServiceException(ApiResultEnum.SYSTEM_ACCOUNT_NOT_FOUND);
+        }
+
+        String encryptedPassword = SecureUtil.md5(dto.getPassword() + sysUser.getSalt());
+        if (!encryptedPassword.equals(sysUser.getPassword())) {
+            handleLoginError(request, dto.getUsername(), errKey,
+                    ApiResultEnum.SYSTEM_PASSWORD_ERROR.getMessage());
+            throw new ServiceException(ApiResultEnum.SYSTEM_PASSWORD_ERROR);
+        }
+    }
+
+    /**
+     * 登录成功处理
+     */
+    private SysUser handleLoginSuccess(HttpServletRequest request, LoginDto dto,SysUser sysUser, String errKey) {
+        // 清除错误计数
+        RedisUtil.del(errKey);
+        // 执行登录
+        StpUtil.login(sysUser.getId(), dto.isRememberMe());
+        // 记录登录信息
+        recordLoginInfo(request, dto.getUsername(), SystemConst.LoginInfoStatus.SUCCESS, "登录成功");
+        // 更新用户登录记录
+        updateUserRecord(sysUser,request);
+        // 设置session
+        SaSession session = StpUtil.getSession();
+        session.set(Const.SessionKey.SESSION_USER, sysUser);
+
+        // 数据脱敏
+        sysUser.setPassword("****");
+        sysUser.setSalt("****");
+        return sysUser;
     }
 
     @Override
     public boolean logout(HttpServletRequest request) {
         SysUser sysUser = Convert.convert(SysUser.class, StpUtil.getSession().get(Const.SessionKey.SESSION_USER));
-        recordLoginInfo(request,sysUser.getUsername(), SystemConst.LoginInfoStatus.SUCCESS,"退出登录");
+        recordLoginInfo(request, sysUser.getUsername(), SystemConst.LoginInfoStatus.SUCCESS, "退出登录");
         StpUtil.logout();
         return true;
     }
 
     /**
      * 记录登录信息
-     * @param request request
+     *
+     * @param request  request
      * @param username 用户名
      * @param status   状态
      * @param message  消息内容
      */
-    public void recordLoginInfo(HttpServletRequest request,String username, String status, String message) {
+    public void recordLoginInfo(HttpServletRequest request, String username, String status, String message) {
         LoginInfoEvent loginInfoEvent = new LoginInfoEvent();
         loginInfoEvent.setLoginName(username);
         loginInfoEvent.setStatus(status);
@@ -292,11 +349,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SpringUtil.getApplicationContext().publishEvent(loginInfoEvent);
     }
 
-    public void updateUserRecord(SysUser sysUser){
+    public void updateUserRecord(SysUser sysUser,HttpServletRequest request) {
         // 更新最后登录时间
-        sysUser.setLoginDate(LocalDateTime.now());
-        sysUser.setLoginIp(NetUtil.getLocalhostStr());
-        updateById(sysUser);
+        SysUser updateUser = new SysUser();
+        updateUser.setId(sysUser.getId());
+        updateUser.setLoginDate(LocalDateTime.now());
+        updateUser.setLoginIp(RemoteIpUtil.getRemoteIp(request));
+        updateUser.setUpdateTime(LocalDateTime.now());
+        this.updateById(updateUser);
     }
 
     /**

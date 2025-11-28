@@ -39,14 +39,14 @@ public class LoginIntercept implements HandlerInterceptor {
             return true;
         }
 
-        // 判断是否是用户体系的
-        if(MATCHER.match("/user/**", servletPath)){
+        // 判断是否是APP用户体系的
+        if(MATCHER.match("/app/**", servletPath)){
             // 若user模块且未登录，则提示用户
-            if (!StpKit.USER.isLogin()) {
-                log.debug("LoginIntercept-用户未登录拦截，url={}", servletPath);
-                throw new ServiceException(ApiResultEnum.APP_USER_NO_LOGIN_OR_EXPIRED);
+            if (StpKit.APP.isLogin()) {
+                return true;
             }
-            return true;
+            log.debug("LoginIntercept-用户未登录拦截，url={}", servletPath);
+            throw new ServiceException(ApiResultEnum.APP_USER_NO_LOGIN_OR_EXPIRED);
         }
 
         // 若admin模块且未登录，则重定向到登录页面

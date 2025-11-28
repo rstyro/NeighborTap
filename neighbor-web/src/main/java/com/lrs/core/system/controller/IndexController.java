@@ -74,17 +74,4 @@ public class IndexController {
         return "icon";
     }
 
-
-    @GetMapping("/test")
-    @ResponseBody
-    @AntiResubmit
-    @SaIgnore
-    public R test(String name, MultipartFile file) {
-        if(Objects.equals(name, "test")) {
-            throw new RuntimeException("test");
-        }
-        System.out.println(file);
-        return R.ok();
-    }
-
 }

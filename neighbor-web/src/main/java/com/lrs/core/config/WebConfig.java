@@ -46,7 +46,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        //  映射favicon.ico，解决No endpoint GET /favicon.ico
         registry.addResourceHandler("/favicon.ico")
-                .addResourceLocations("classpath:/static/favicon.ico");
+                .addResourceLocations("classpath:/static/","classpath:/resources/");
+        WebMvcConfigurer.super.addResourceHandlers(registry);
     }
 }

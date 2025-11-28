@@ -1,4 +1,4 @@
-package com.lrs.core.config;
+package com.lrs.core.satoken;
 
 import cn.dev33.satoken.stp.StpInterface;
 import com.lrs.core.system.service.ISysUserService;

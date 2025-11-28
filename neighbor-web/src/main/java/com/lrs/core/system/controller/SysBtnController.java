@@ -1,9 +1,10 @@
 package com.lrs.core.system.controller;
+
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lrs.common.annotation.AntiResubmit;
 import com.lrs.common.annotation.OperateLog;
-import com.lrs.common.annotation.RepeatSubmit;
 import com.lrs.common.enums.BusinessType;
 import com.lrs.common.vo.ContextUtil;
 import com.lrs.common.vo.R;
@@ -55,7 +56,7 @@ public class SysBtnController extends BaseController {
     /**
      * 添加
      */
-    @RepeatSubmit(interval = 30000)
+    @AntiResubmit
     @OperateLog(title = "按钮管理",businessType = BusinessType.INSERT)
     @SaCheckPermission("system:btn:list:add")
     @PostMapping("/add")
@@ -67,7 +68,7 @@ public class SysBtnController extends BaseController {
     /**
      * 编辑
      */
-    @RepeatSubmit(interval = 30000)
+    @AntiResubmit
     @OperateLog(title = "按钮管理",businessType = BusinessType.UPDATE)
     @PostMapping("/edit")
     @SaCheckPermission("system:btn:list:edit")
