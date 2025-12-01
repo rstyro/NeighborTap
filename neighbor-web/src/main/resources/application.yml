@@ -126,5 +126,5 @@ mybatis-plus:
 oauth:
   clients:
     WECHAT_MINI_PROGRAM:
-      clientId: wxb17c548aacf18210
-      clientSecret: 432e40823eefc7dae4b518cf958943b6
+      clientId: wxb66666
+      clientSecret: 432e408231111t43534543
