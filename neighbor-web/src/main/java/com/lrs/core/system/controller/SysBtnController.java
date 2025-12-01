@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lrs.common.annotation.AntiResubmit;
 import com.lrs.common.annotation.OperateLog;
 import com.lrs.common.enums.BusinessType;
-import com.lrs.common.vo.ContextUtil;
+import com.lrs.common.vo.SecurityContextHolder;
 import com.lrs.common.vo.R;
 import com.lrs.core.base.BaseController;
 import com.lrs.core.system.dto.BaseDto;
@@ -49,7 +49,7 @@ public class SysBtnController extends BaseController {
     @PostMapping("/list")
     @ResponseBody
     public R list(@RequestBody BaseDto dto) {
-        Page<SysBtn> menuPage = sysBtnService.getPage(new Page<>(ContextUtil.getPageNo(), ContextUtil.getPageSize()), dto);
+        Page<SysBtn> menuPage = sysBtnService.getPage(new Page<>(SecurityContextHolder.getPageNo(), SecurityContextHolder.getPageSize()), dto);
         return R.ok(menuPage);
     }
 

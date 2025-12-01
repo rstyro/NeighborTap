@@ -57,7 +57,7 @@ public class RestExceptionHandler {
 	@ExceptionHandler(ServiceException.class)
 	public R ApiException(ServiceException ex) {
 		log.error(ex.getMessage(),ex);
-		return R.error(ex.getStatus(),ex.getMessage());
+		return R.error(ex.getCode(),ex.getMessage());
 	}
 
 	@ExceptionHandler(RuntimeException.class)

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lrs.core.admin.mapper.AppUserMapper">
+
+
+    <select id="getUserByOpenId" resultType="com.lrs.core.admin.entity.AppUser">
+        SELECT
+            a.*
+        FROM
+            app_user a
+                INNER JOIN app_user_oauth b ON a.user_id = b.user_id
+        WHERE a.is_del =0 AND b.is_del = 0 and b.open_id=#{openId}
+    </select>
+</mapper>

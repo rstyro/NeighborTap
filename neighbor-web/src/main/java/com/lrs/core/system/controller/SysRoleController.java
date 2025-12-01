@@ -6,7 +6,7 @@ import cn.dev33.satoken.annotation.SaMode;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lrs.common.annotation.OperateLog;
 import com.lrs.common.enums.BusinessType;
-import com.lrs.common.vo.ContextUtil;
+import com.lrs.common.vo.SecurityContextHolder;
 import com.lrs.common.vo.R;
 import com.lrs.core.base.BaseController;
 import com.lrs.core.system.dto.SysRoleDto;
@@ -50,7 +50,7 @@ public class SysRoleController extends BaseController {
     @PostMapping("/list")
     @ResponseBody
     public R list(@RequestBody SysRoleDto dto) {
-        Page<SysRole> menuPage = sysRoleService.getRolePage(new Page<>(ContextUtil.getPageNo(), ContextUtil.getPageSize()), dto);
+        Page<SysRole> menuPage = sysRoleService.getRolePage(new Page<>(SecurityContextHolder.getPageNo(), SecurityContextHolder.getPageSize()), dto);
         return R.ok(menuPage);
     }
 

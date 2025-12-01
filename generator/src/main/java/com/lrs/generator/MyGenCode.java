@@ -10,6 +10,7 @@ import com.lrs.generator.base.BaseGenerator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -26,13 +27,22 @@ public class MyGenCode extends BaseGenerator {
         GlobalConfig globalConfig = getGlobalConfig(outPath).build();
         PackageConfig packageConfig = getPackageConfig(outPath).build();
         param.put("basePackage", packageConfig.getParent());
-        StrategyConfig strategyConfig = getStrategyConfig(getTables(scannerNext("请输入表名，多个英文逗号分隔？所有输入 all")), outPath).build();
-        InjectionConfig injectionConfig = getInjectionConfig(param).build();
+        String result = scannerNext("是否需要生成页面，1=生成，0=取消");
+        List<String> tables = getTables(scannerNext("请输入表名，多个英文逗号分隔？所有输入 all"));
+        StrategyConfig strategyConfig=null;
+        if("1".equals(result)){
+            strategyConfig = getStrategyConfig(tables).build();
+
+            InjectionConfig injectionConfig = getInjectionConfig(param).build();
+            // 注入配置，可生成自定义 页面、VO 、DTO 等
+            autoGenerator.injection(injectionConfig);
+        }else {
+            strategyConfig = getDefaultStrategyConfig(tables).build();
+        }
         autoGenerator.global(globalConfig);
         autoGenerator.packageInfo(packageConfig);
         autoGenerator.strategy(strategyConfig);
-        // 注入配置，可生成自定义 页面、VO 、DTO 等
-        autoGenerator.injection(injectionConfig);
+
         autoGenerator.execute(new FreemarkerTemplateEngine());
 
     }

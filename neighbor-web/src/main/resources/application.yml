@@ -94,6 +94,17 @@ admin:
       maxRetryCount: 6
       # 密码锁定时间（默认10分钟）
       lockTime: 10
+    # 不拦截的请求
+    security:
+      excludes:
+        - /static/**
+        - /favicon.ico
+        - /error/**
+        - /toLogin
+        - /login
+        - /captcha**
+        - /upload/**
+        - /show/**
 
 mybatis-plus:
   mapper-locations:
@@ -109,14 +120,11 @@ mybatis-plus:
       logic-delete-value: Y # 逻辑已删除值(默认为 1)
       logic-not-delete-value: N # 逻辑未删除值(默认为 0)
 
-# 不拦截的请求
-security:
-  excludes:
-    - /static/**
-    - /favicon.ico
-    - /error/**
-    - /toLogin
-    - /login
-    - /captcha**
-    - /upload/**
-    - /show/**
+
+# 第三方登录
+
+oauth:
+  clients:
+    WECHAT_MINI_PROGRAM:
+      clientId: wxb17c548aacf18210
+      clientSecret: 432e40823eefc7dae4b518cf958943b6

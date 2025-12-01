@@ -13,6 +13,10 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 
 /**
  * 接口拦截
@@ -22,7 +26,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     @Resource
-    private CommonConfig.SecurityConfig securityConfig;
+    private CommonConfig commonConfig;
 
     @Bean
     public LoginIntercept loginIntercept() {
@@ -36,12 +40,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        CommonConfig.SecurityConfig security = commonConfig.getSecurity();
+        List<String> excludes = Objects.nonNull(security)?commonConfig.getSecurity().getExcludes():new ArrayList<>();
         registry.addInterceptor(loginIntercept())
                 .addPathPatterns("/**")
-                .excludePathPatterns(securityConfig.getExcludes());
+                .excludePathPatterns(excludes);
         registry.addInterceptor(contextInterceptor())
                 .addPathPatterns("/**")
-                .excludePathPatterns(securityConfig.getExcludes());
+                .excludePathPatterns(excludes);
     }
 
     @Override

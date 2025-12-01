@@ -1,6 +1,6 @@
 package com.lrs.core.intercept;
 
-import com.lrs.common.vo.ContextUtil;
+import com.lrs.common.vo.SecurityContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -14,11 +14,11 @@ public class ContextInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         try {
             // 一行代码初始化所有上下文参数
-            ContextUtil.initFromRequest(request);
+            SecurityContextHolder.initFromRequest(request);
             return true;
         } catch (Exception e) {
             // 初始化失败时使用默认值，确保请求继续处理
-            ContextUtil.reset();
+            SecurityContextHolder.reset();
             return true;
         }
     }
@@ -26,6 +26,6 @@ public class ContextInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         // 请求完成后清理ThreadLocal，防止内存泄漏
-        ContextUtil.clear();
+        SecurityContextHolder.clear();
     }
 }

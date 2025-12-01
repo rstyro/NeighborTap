@@ -54,7 +54,10 @@ public class BaseGenerator {
                 .pathInfo(Collections.singletonMap(OutputFile.xml, outPath + "/src/main/resources/mapper/admin"));
     }
 
-    public static StrategyConfig.Builder getStrategyConfig(List<String> includes, String outPath) {
+    /**
+     * 自定义策略，生成自定义模版页面
+     */
+    public static StrategyConfig.Builder getStrategyConfig(List<String> includes) {
         StrategyConfig.Builder builder = new StrategyConfig.Builder();
         builder.addInclude(includes) // 设置需要生成的表名
                 // 设置过滤表前缀
@@ -69,7 +72,7 @@ public class BaseGenerator {
                 .mapperBuilder()
                 .mapperAnnotation(Mapper.class)//开启mapper注解
 //                            .enableBaseResultMap()//启用xml文件中的BaseResultMap 生成
-                .enableBaseColumnList()//启用xml文件中的BaseColumnList
+//                .enableBaseColumnList()//启用xml文件中的BaseColumnList
                 .controllerBuilder()
                 .enableRestStyle();
 
@@ -84,6 +87,31 @@ public class BaseGenerator {
                 .template("/templates/codeTemplates/controller.java")
                 .build();
 
+        return builder;
+    }
+
+    public static StrategyConfig.Builder getDefaultStrategyConfig(List<String> includes) {
+        StrategyConfig.Builder builder = new StrategyConfig.Builder();
+        builder.addInclude(includes) // 设置需要生成的表名
+                // 设置过滤表前缀
+                .addTablePrefix("t_", "c_")
+                .entityBuilder()
+                .enableLombok()
+                .enableTableFieldAnnotation()
+                .enableChainModel()
+                .naming(NamingStrategy.underline_to_camel)//数据表映射实体命名策略：默认下划线转驼峰underline_to_camel
+                .columnNaming(NamingStrategy.underline_to_camel)//表字段映射实体属性命名规则：默认null，不指定按照naming执行
+                .idType(IdType.AUTO)//添加全局主键类型
+                .mapperBuilder()
+                .mapperAnnotation(Mapper.class)//开启mapper注解
+//                            .enableBaseResultMap()//启用xml文件中的BaseResultMap 生成
+//                .enableBaseColumnList()//启用xml文件中的BaseColumnList
+                .controllerBuilder()
+                .enableRestStyle();
+
+        builder.entityBuilder()
+//                .javaTemplate("/templates/codeTemplates/entity.java") // 设置实体类模板
+                .build();
         return builder;
     }
 

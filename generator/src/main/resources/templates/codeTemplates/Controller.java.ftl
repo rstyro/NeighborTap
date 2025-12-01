@@ -2,7 +2,7 @@ package com.lrs.core.${package.ModuleName}.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
-import com.lrs.common.vo.ContextUtil;
+import com.lrs.common.vo.SecurityContextHolder;
 import com.lrs.common.vo.R;
 import com.lrs.core.base.BaseController;
 import com.lrs.core.system.dto.BaseDto;

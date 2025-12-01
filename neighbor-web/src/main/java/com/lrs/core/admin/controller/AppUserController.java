@@ -3,7 +3,7 @@ package com.lrs.core.admin.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.lrs.common.vo.ContextUtil;
+import com.lrs.common.vo.SecurityContextHolder;
 import com.lrs.common.vo.R;
 import com.lrs.core.admin.entity.AppUser;
 import com.lrs.core.admin.service.IAppUserService;
@@ -48,7 +48,7 @@ public class AppUserController extends BaseController {
     @PostMapping("/list")
     @ResponseBody
     public R list(@RequestBody BaseDto dto) {
-    Page<AppUser> menuPage = appUserService.getPage(new Page<>(ContextUtil.getPageNo(), ContextUtil.getPageSize()), dto);
+    Page<AppUser> menuPage = appUserService.getPage(new Page<>(SecurityContextHolder.getPageNo(), SecurityContextHolder.getPageSize()), dto);
         return R.ok(menuPage);
     }
 

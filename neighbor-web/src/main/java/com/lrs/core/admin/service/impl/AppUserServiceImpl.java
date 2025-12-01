@@ -56,4 +56,9 @@ public class AppUserServiceImpl extends ServiceImpl<AppUserMapper, AppUser> impl
         return removeBatchByIds(ids);
     }
 
+    @Override
+    public AppUser getUserByOpenId(String openId) {
+        return baseMapper.getUserByOpenId(openId);
+    }
+
 }

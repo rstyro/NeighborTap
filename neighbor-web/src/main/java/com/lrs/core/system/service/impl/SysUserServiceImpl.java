@@ -3,6 +3,7 @@ package com.lrs.core.system.service.impl;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.net.NetUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
@@ -63,7 +64,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private ISysMenuService sysMenuService;
 
     @Resource
-    private CommonConfig.UserConfig userConfig;
+    private CommonConfig commonConfig;
 
 
     /**
@@ -196,6 +197,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 throw new ServiceException(ApiResultEnum.SYSTEM_USER_EXIST);
             }
         }
+
+        // 删除旧头像
+        if(!ObjectUtils.isEmpty(item.getAvatar()) && !Objects.equals(item.getAvatar(), sysUser.getAvatar())) {
+            FileUtil.del(commonConfig.getUpload().getRoot() + sysUser.getAvatar().replace("/show",""));
+        }
+
         // 密码盐从初始化后，不可更改
         item.setSalt(null);
         if (!ObjectUtils.isEmpty(item.getPassword())) {
@@ -241,7 +248,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     private void checkAccountLocked(HttpServletRequest request, String username, String errKey) {
         Integer errorCount = RedisUtil.get(errKey, Integer.class);
-        int maxRetryCount = userConfig.getMaxRetryCount();
+        int maxRetryCount = commonConfig.getUser().getMaxRetryCount();
 
         if (errorCount != null && errorCount >= maxRetryCount) {
             recordLoginInfo(request, username, SystemConst.LoginInfoStatus.FAIL,
@@ -268,6 +275,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     private void handleLoginError(HttpServletRequest request, String username,String errKey, String errorMsg) {
         // 原子性增加错误次数
+        CommonConfig.UserConfig userConfig = commonConfig.getUser();
         Long errorCount = RedisUtil.incr(errKey, 1L);
         int maxRetryCount = userConfig.getMaxRetryCount();
         // 如果是第一次错误，设置过期时间

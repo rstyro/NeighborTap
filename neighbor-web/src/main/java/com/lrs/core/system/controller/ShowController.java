@@ -1,8 +1,11 @@
 package com.lrs.core.system.controller;
 
 import com.lrs.core.config.CommonConfig;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
@@ -11,34 +14,44 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.*;
+import java.nio.file.Paths;
 
 /**
  * 上传图片展示类
  */
+@Slf4j
 @Controller
 @RequestMapping("/show")
+@RequiredArgsConstructor
 public class ShowController {
 
-    @Resource
-    private CommonConfig.UploadConfig uploadConfig;
+    private final CommonConfig commonConfig;
 
+
+    private String uploadRootPath;
+
+    @PostConstruct
+    public void init() {
+        this.uploadRootPath = commonConfig.getUpload().getRoot();
+        log.info("图片展示控制器初始化完成，上传根路径: {}", uploadRootPath);
+    }
 
     //显示本地图片
     @GetMapping(value = "/{filename:.+}")
     public void getImg(@PathVariable("filename") String filename, HttpServletResponse response) throws IOException {
-        String address = uploadConfig.getRoot() + "/" + filename;
+        String address = buildFilePath(filename);
         sendImageToResponse(response, address);
     }
 
     @GetMapping(value = "/{folderName}/{filename:.+}")
     public void getImg(@PathVariable("folderName") String folderName, @PathVariable("filename") String filename, HttpServletResponse response) throws IOException {
-        String address = uploadConfig.getRoot() + "/" + folderName + "/" + filename;
+        String address = buildFilePath(folderName,filename);
         sendImageToResponse(response, address);
     }
 
     @GetMapping(value = "/{folderName}/{folderName2}/{filename:.+}")
     public void getImg(@PathVariable("folderName") String folderName, @PathVariable("folderName2") String folderName2, @PathVariable("filename") String filename, HttpServletResponse response) throws IOException {
-        String address = uploadConfig.getRoot() + "/" + folderName + "/" + folderName2 + "/" + filename;
+        String address = buildFilePath(folderName,folderName2,filename);
         sendImageToResponse(response, address);
     }
 
@@ -65,6 +78,22 @@ public class ShowController {
         } catch (FileNotFoundException e) {
             throw new IOException("查找文件失败：err=", e);
         }
+    }
+
+    /**
+     * 构建文件路径
+     */
+    private String buildFilePath(String... pathSegments) {
+        if (pathSegments == null || pathSegments.length == 0) {
+            throw new IllegalArgumentException("路径段不能为空");
+        }
+        // 安全验证：检查路径段是否包含路径遍历字符
+        for (String segment : pathSegments) {
+            if (segment.contains("..") || segment.contains("/") || segment.contains("\\")) {
+                throw new SecurityException("非法路径参数: " + segment);
+            }
+        }
+        return Paths.get(uploadRootPath, pathSegments).toString();
     }
 
     // 根据文件扩展名获取MIME类型

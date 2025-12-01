@@ -23,7 +23,7 @@ import java.util.Objects;
 public class UploadController {
 
     @Resource
-    private CommonConfig.UploadConfig uploadConfig;
+    private CommonConfig commonConfig;
 
     /**
      * 上传图片
@@ -44,7 +44,7 @@ public class UploadController {
         String suffixName = Objects.requireNonNull(fileName).substring(fileName.lastIndexOf("."));
         String folder = "/"+ DateUtil.getDays()+"/";
         fileName  = System.currentTimeMillis()+suffixName;
-        File dest = ImgUtil.createFile(uploadConfig.getRoot()+folder+fileName);
+        File dest = ImgUtil.createFile(commonConfig.getUpload().getRoot()+folder+fileName);
         try {
             file.transferTo(Objects.requireNonNull(dest));
         }catch (IOException e) {

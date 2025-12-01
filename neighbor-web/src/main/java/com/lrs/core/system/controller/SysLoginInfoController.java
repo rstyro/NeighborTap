@@ -2,7 +2,7 @@ package com.lrs.core.system.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
-import com.lrs.common.vo.ContextUtil;
+import com.lrs.common.vo.SecurityContextHolder;
 import com.lrs.common.vo.R;
 import com.lrs.core.base.BaseController;
 import com.lrs.core.system.dto.BaseDto;
@@ -47,7 +47,7 @@ public class SysLoginInfoController extends BaseController {
     @PostMapping("/list")
     @ResponseBody
     public R list(@RequestBody BaseDto dto) {
-    Page<SysLoginInfo> menuPage = sysLoginInfoService.getPage(new Page<>(ContextUtil.getPageNo(), ContextUtil.getPageSize()), dto);
+    Page<SysLoginInfo> menuPage = sysLoginInfoService.getPage(new Page<>(SecurityContextHolder.getPageNo(), SecurityContextHolder.getPageSize()), dto);
         return R.ok(menuPage);
     }
 

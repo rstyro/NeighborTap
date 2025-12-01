@@ -3,6 +3,7 @@ package com.lrs.core.admin.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lrs.core.admin.entity.AppUser;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>
@@ -15,4 +16,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface AppUserMapper extends BaseMapper<AppUser> {
 
+    AppUser getUserByOpenId(@Param("openId") String openId);
 }

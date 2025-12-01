@@ -27,4 +27,6 @@ public interface IAppUserService extends IService<AppUser> {
     boolean del(Long id);
 
     boolean batchDel(List<Long> ids);
+
+    AppUser getUserByOpenId(String openId);
 }

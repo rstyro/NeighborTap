@@ -1,43 +1,84 @@
 package com.lrs.common.exception;
 
-
 import com.lrs.common.enums.ApiResultEnum;
-import lombok.Data;
 
 /**
- * 自定义的服务异常
- * @author rstyro
- *
+ * 业务异常
  */
-@Data
-public class ServiceException extends RuntimeException{
-	private static final long serialVersionUID = 1L;
-	private Integer status;
-	private String message;
-	private Object data;
-	private Exception exception;
-	public ServiceException() {
-		super();
-	}
+public class ServiceException extends RuntimeException {
 
-	public ServiceException(Integer status, String message, Object data, Exception exception) {
-		this.status = status;
-		this.message = message;
-		this.data = data;
-		this.exception = exception;
-	}
-	public ServiceException(String message) {
-		this(ApiResultEnum.ERROR.getCode(),message,null,null);
-	}
-	public ServiceException(ApiResultEnum apiResultEnum) {
-		this(apiResultEnum.getCode(),apiResultEnum.getMessage(),null,null);
-	}
-	public ServiceException(ApiResultEnum apiResultEnum, Object data) {
-		this(apiResultEnum.getCode(),apiResultEnum.getMessage(),data,null);
-	}
-	public ServiceException(ApiResultEnum apiResultEnum, Object data, Exception exception) {
-		this(apiResultEnum.getCode(),apiResultEnum.getMessage(),data,exception);
-	}
+    /**
+     * 错误码
+     */
+    private Integer code = -1;
+
+    /**
+     * 错误提示
+     */
+    private String message;
+    /**
+     * 错误明细，内部调试错误
+     */
+    private String detailMessage;
 
 
+    public String getDetailMessage() {
+        return detailMessage;
+    }
+
+    /**
+     * 空构造方法，避免反序列化问题
+     */
+    public ServiceException() {
+
+    }
+
+    public ServiceException(String message) {
+        this.message = message;
+        this.code = 500;
+    }
+
+    public ServiceException(String message, Throwable cause) {
+        super(message, cause);
+        this.code = 500;
+    }
+
+    public ServiceException(String message, Integer code) {
+        this.message = message;
+        this.code = code;
+    }
+
+    public ServiceException(Integer code, String message) {
+        this.message = message;
+        this.code = code;
+    }
+
+    public ServiceException setMessage(String message) {
+        this.message = message;
+        return this;
+    }
+
+    public ServiceException(ApiResultEnum apiResultEnum) {
+        this.message = apiResultEnum.getMessage();
+        this.code = apiResultEnum.getCode();
+    }
+
+    public ServiceException(ApiResultEnum apiResultEnum, Object... args) {
+        this.message = String.format(apiResultEnum.getMessage(), args);
+        this.code = apiResultEnum.getCode();
+    }
+
+    public ServiceException setDetailMessage(String detailMessage) {
+        this.detailMessage = detailMessage;
+        return this;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
 }

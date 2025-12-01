@@ -305,7 +305,7 @@ public class LogAspect {
         } else if (param instanceof Map) {
             return ((Map<?, ?>) param).values().stream().anyMatch(this::isFileOrRequest);
         }
-        return !isFileOrRequest(param);
+        return isFileOrRequest(param);
     }
 
     /**

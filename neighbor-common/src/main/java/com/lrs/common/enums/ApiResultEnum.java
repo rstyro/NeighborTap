@@ -10,6 +10,7 @@ public enum ApiResultEnum {
 	ERROR_RUN(503,"运行时异常"),
 	ERROR_IO(504,"上传文件异常"),
 	ERROR_REQUEST_ERR(505,"请求方法错误"),
+	ERROR_INVALID_PARAM(506,"参数错误:%s"),
 
 	/**系统框架，报错code:1000-2000 */
 	SYSTEM_CODE_ERROR(1000,"验证码错误"),
@@ -21,6 +22,8 @@ public enum ApiResultEnum {
 
 	// APP相关
 	APP_USER_NO_LOGIN_OR_EXPIRED(2001,"用户未登录或登录已过期"),
+	APP_USER_NICK_NAME_EXIST(2002,"用户昵称已被使用"),
+	APP_USER_NOT_FOUND(2003,"用户不存在"),
 	;
 
 	private String message;

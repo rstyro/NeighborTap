@@ -14,7 +14,7 @@ import java.util.Map;
  * 上下文工具类
  * @author rstyro
  */
-public class ContextUtil {
+public class SecurityContextHolder {
 
     // ThreadLocal变量定义
     private static final TransmittableThreadLocal<String> TRACKER_ID_HOLDER = new TransmittableThreadLocal<>();

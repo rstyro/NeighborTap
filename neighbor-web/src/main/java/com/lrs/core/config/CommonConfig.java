@@ -16,10 +16,12 @@ public class CommonConfig {
      */
     private String systemName;
 
-    @ConfigurationProperties(prefix = "admin.common.upload")
-    @Configuration
+    private UploadConfig upload;
+    private SecurityConfig security;
+    private UserConfig user;
+
     @Data
-    public class UploadConfig {
+    public static class UploadConfig {
         /**
          * 上传的根目录
          */
@@ -36,10 +38,8 @@ public class CommonConfig {
 
     }
 
-    @ConfigurationProperties(prefix = "security")
-    @Configuration
     @Data
-    public class SecurityConfig {
+    public static class SecurityConfig {
         /**
          * 免登录的路径
          */
@@ -47,10 +47,8 @@ public class CommonConfig {
 
     }
 
-    @ConfigurationProperties(prefix = "admin.common.user")
-    @Configuration
     @Data
-    public class UserConfig {
+    public static class UserConfig {
         /**
          * 密码最大错误次数
          */
@@ -59,6 +57,5 @@ public class CommonConfig {
          * 密码锁定时间,单位分钟
          */
         private int lockTime;
-
     }
 }

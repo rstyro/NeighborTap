@@ -159,6 +159,13 @@
                 <version>${sa-token-thymeleaf.version}</version>
             </dependency>
 
+            <!-- JustAuth -->
+            <dependency>
+                <groupId>me.zhyd.oauth</groupId>
+                <artifactId>JustAuth</artifactId>
+                <version>${justAuth.version}</version>
+            </dependency>
+
 
 
             <!-- hutool 模块，按需引用吧 -->

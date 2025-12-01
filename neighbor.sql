@@ -306,4 +306,20 @@ CREATE TABLE `sys_user_role`  (
 -- Records of sys_user_role
 -- ----------------------------
 
+
+
+CREATE TABLE `app_user_oauth` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+  `user_id` bigint DEFAULT NULL COMMENT '用户id',
+  `open_id` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'openId 开放id,应用唯一标识',
+  `union_id` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'unionId 开放平台账号下的所有应用之间共享',
+  `source` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '来源',
+  `nick_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '昵称',
+  `avatar_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '头像',
+  `is_del` int DEFAULT '0' COMMENT '是否删除',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='小程序-用户第三方登录账号绑定';
+
 SET FOREIGN_KEY_CHECKS = 1;
